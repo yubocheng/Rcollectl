@@ -17,15 +17,19 @@ cl_exists = function() {
 #' @examples
 #' if (cl_exists()) {
 #'   zz = cl_start()
+#'   Sys.sleep(2)
 #'   print(zz)
+#'   Sys.sleep(2)
 #'   print(cl_result_path(zz))
 #'   cl_stop(zz)
+#'   Sys.sleep(2)
 #'   zz$process$is_alive()
 #' }
 #' @export
 cl_start = function(target = tempfile()) {
  proc = try(processx::process$new("collectl", args=c("-scdmn", "-P", paste("-f", target, sep=""))))
- ans = list(process=proc, target=target)
+ ans = list(process=proc, target=target, node_name=Sys.info()[["nodename"]],
+  date=format(Sys.Date(), "%Y%m%d"))
  class(ans) = "Rcollectl_process"
  ans
 }
@@ -66,5 +70,5 @@ cl_stop = function(proc) {
 cl_result_path = function(proc) {
  stopifnot(inherits(proc, "Rcollectl_process"))
  dn = dirname(proc$target)
- grep(basename(proc$target), dir(dn, full.names=TRUE), value=TRUE)
+ paste0(proc$target, "-", proc$node_name, "-", proc$date, ".tab.gz")
 }
